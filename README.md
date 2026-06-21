@@ -50,6 +50,14 @@ Local rule-based diagnostics engine. Flags toxic debt, category drain, and unsaf
 
 ---
 
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/Vizzil-Solutions/neurospend-ai/tags).
+
+This project adheres to the [Conventional Commits](https://www.conventionalcommits.org/) specification. We use [Standard Version](https://github.com/conventional-changelog/standard-version) for automated changelog generation and version bumping.
+
+---
+
 ## Quick Start
 
 ```bash
