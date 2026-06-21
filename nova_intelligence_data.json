@@ -1,0 +1,496 @@
+{
+  "_meta": {
+    "file": "nova_intelligence_data.json",
+    "version": "1.0.0",
+    "purpose": "Local deterministic heuristics engine for NeuroSpend NOVA Intelligence Core",
+    "engine": "LocalAIEngine.php — rule-based, no external API calls required",
+    "sources": [
+      "Warren & Tyagi (2005) — All Your Worth: The Ultimate Lifetime Money Plan",
+      "Kahneman & Tversky (1979) — Prospect Theory, behavioral decision-making",
+      "Richard Thaler (1980) — Mental Accounting theory",
+      "Thaler & Sunstein (2008) — Nudge: Improving Decisions About Health, Wealth, and Happiness",
+      "Dave Ramsey — Baby Steps system, Snowball Method",
+      "McShane & Gal (Kellogg/Northwestern) — Journal of Marketing Research, debt psychology",
+      "Amar et al. — Debt Account Aversion research",
+      "McAllister (JMU, 2023) — Snowball vs Avalanche empirical SCF analysis",
+      "Lusardi & Mitchell (2014) — Financial literacy and wealth accumulation",
+      "Fannie Mae Selling Guide B3-6-02 — DTI underwriting standards",
+      "Federal Reserve Survey of Consumer Finances (SCF)"
+    ],
+    "last_updated": "2026-06-21"
+  },
+
+  "budgeting_frameworks": {
+    "fifty_thirty_twenty": {
+      "name": "50/30/20 Rule",
+      "source": "Elizabeth Warren & Amelia Warren Tyagi (2005)",
+      "description": "Divides after-tax income into three buckets: needs, wants, and financial future.",
+      "allocations": {
+        "needs": {
+          "percentage": 50,
+          "label": "Needs",
+          "description": "Essential, non-negotiable obligations",
+          "examples": ["rent", "mortgage", "utilities", "groceries", "transport", "minimum debt payments", "insurance"]
+        },
+        "wants": {
+          "percentage": 30,
+          "label": "Wants",
+          "description": "Discretionary lifestyle spending",
+          "examples": ["dining out", "entertainment", "streaming", "clothing beyond basics", "gym", "vacations"]
+        },
+        "savings_and_debt": {
+          "percentage": 20,
+          "label": "Future",
+          "description": "Emergency fund, savings, investments, and above-minimum debt payments",
+          "examples": ["emergency fund", "retirement contributions", "extra debt payments", "investments"]
+        }
+      },
+      "applicability_notes": [
+        "Designed for consumers with stable income and manageable debt loads",
+        "NOT recommended for individuals in deep high-interest unsecured debt — consider 75/5/20 (needs/wants/debt) instead",
+        "High cost-of-living areas (e.g. major metros) may require needs to exceed 50%; adjust proportionally",
+        "Works as a starting point; skilled budgeters develop personal ratios"
+      ],
+      "deep_debt_variant": {
+        "name": "Deep Debt Mode (75/5/20)",
+        "needs": 75,
+        "wants": 5,
+        "debt_repayment": 20,
+        "trigger_condition": "unsecured_debt_to_income_ratio > 0.20",
+        "description": "For users carrying heavy unsecured debt. Minimizes wants aggressively to accelerate payoff and prevent bankruptcy or credit damage."
+      }
+    },
+
+    "pay_yourself_first": {
+      "name": "Pay Yourself First (Reverse Budgeting)",
+      "description": "Save and invest a fixed amount immediately upon receiving income, before allocating to any other expense. Treats savings as a non-negotiable first bill.",
+      "recommended_savings_rate": {
+        "minimum": 0.05,
+        "standard": 0.10,
+        "target": 0.20,
+        "aggressive": 0.30
+      },
+      "behavioral_rationale": "Removes the temptation to spend savings; creates automation that bypasses present-bias (Kahneman). Automates positive financial behavior without relying on willpower."
+    },
+
+    "weekly_budget_method": {
+      "name": "Weekly Discretionary Allocation",
+      "description": "After subtracting all fixed monthly obligations, divide remaining discretionary cash by number of weeks until next payday. Prevents the 'month-start illusion' — where a high opening balance creates false spending confidence.",
+      "formula": "weekly_discretionary = (liquid_balance - sum_of_upcoming_bills) / weeks_remaining",
+      "behavioral_insight": "Checking account balance on the 1st of a monthly cycle appears artificially high. Heavy discretionary spending in week one leaves users reaching for credit by week three. Shrinking the visible spending window quarantines overspend errors to 7 days instead of 30.",
+      "failure_recovery": "If weekly allowance is exceeded, the consequence is self-contained; the budget resets in 7 days with no carry-forward deficit."
+    }
+  },
+
+  "survival_command": {
+    "name": "Runway Optimizer — Safe-to-Spend Formula",
+    "description": "Distributes available liquid cash across remaining days in the payday cycle, after reserving funds for all known upcoming obligations. Produces a deterministic daily spending ceiling.",
+    "formula": {
+      "description": "Safe-to-Spend Daily Allowance",
+      "equation": "daily_allowance = (liquid_balance - reserved_for_bills) / days_until_next_payday",
+      "variables": {
+        "liquid_balance": "Total of unrestricted checking + savings balances available today",
+        "reserved_for_bills": "Sum of all upcoming bill amounts due before the next payday date",
+        "days_until_next_payday": "Calendar days remaining in current cycle (supports override)"
+      },
+      "edge_cases": {
+        "negative_result": {
+          "condition": "reserved_for_bills > liquid_balance",
+          "severity": "CRITICAL",
+          "flag": "SHORTFALL_DETECTED",
+          "message": "Your upcoming obligations exceed your current liquid balance. Immediate action required."
+        },
+        "zero_days": {
+          "condition": "days_until_next_payday == 0",
+          "action": "Reset cycle to next payday date; recalculate from fresh balance"
+        },
+        "low_allowance": {
+          "condition": "daily_allowance < 5",
+          "severity": "WARNING",
+          "flag": "TIGHT_RUNWAY",
+          "message": "Daily allowance is critically low. Defer all non-essential spending."
+        }
+      }
+    },
+    "cycle_types": {
+      "weekly":     { "days": 7,  "label": "Weekly" },
+      "biweekly":   { "days": 14, "label": "Bi-Weekly" },
+      "semi_monthly": { "days": 15, "label": "Twice Monthly (approx.)" },
+      "monthly":    { "days": 30, "label": "Monthly" },
+      "custom":     { "days": null, "label": "Custom / Irregular" }
+    },
+    "override_support": {
+      "description": "User can override the next payday date manually to handle irregular cycles, advance paydays, delayed direct deposits, or gig income timing.",
+      "behavior": "Recalculates days_until_next_payday from today to override date; all downstream calculations update immediately."
+    },
+    "liquid_buffer_reserve": {
+      "description": "Recommended minimum cash floor — do not allocate 100% of liquid balance to bills + spending.",
+      "recommended_floor_days": 3,
+      "formula": "buffer = daily_avg_spend * 3",
+      "rationale": "Absorbs unexpected micro-expenses (fuel, co-pays, incidentals) without triggering overdraft."
+    }
+  },
+
+  "debt_command": {
+    "payoff_strategies": {
+      "snowball": {
+        "name": "Debt Snowball",
+        "source": "Dave Ramsey — Baby Steps System; supported by McShane & Gal (Kellogg), Amar et al.",
+        "method": "Sort debts ascending by current balance. Pay minimums on all except the smallest. Apply all extra available cash to the smallest balance debt until eliminated. Roll that payment to the next smallest.",
+        "sort_key": "balance",
+        "sort_order": "ASC",
+        "psychological_basis": {
+          "mechanism": "Quick wins trigger dopamine release and reinforce debt-repayment behavior",
+          "concept": "Debt account aversion — people are motivated by reducing the COUNT of debts, independent of balance or interest",
+          "ramsey_quote_paraphrase": "Personal finance is 20% head knowledge and 80% behavior. Quick wins build the belief that you CAN pay off debt.",
+          "harvard_business_review_finding": "Starting with the smallest debt demonstrably sustains motivation better over the full repayment journey.",
+          "kellogg_finding": "Empirical support that psychological factors (quick wins) help people stay on debt repayment plans."
+        },
+        "mathematical_efficiency": "Slightly less mathematically optimal than Avalanche in most scenarios; however, the gap in time-to-payoff is typically only a few months.",
+        "best_for": "Users who have previously abandoned debt repayment plans; those who need early confidence; behavioral psychology-driven users",
+        "nova_recommendation_trigger": "Recommend Snowball when: user has 3+ debts, at least one balance under $1,000, and user has a history of not completing debt plans"
+      },
+      "avalanche": {
+        "name": "Debt Avalanche",
+        "source": "Standard mathematical finance optimization",
+        "method": "Sort debts descending by APR. Pay minimums on all except the highest-rate debt. Apply all extra cash to the highest-APR debt until paid off. Roll that payment to the next highest-APR debt.",
+        "sort_key": "apr",
+        "sort_order": "DESC",
+        "mathematical_basis": {
+          "mechanism": "Eliminates the highest compounding cost first, reducing total interest paid over the repayment period.",
+          "conclusion": "Avalanche is mathematically superior in the majority of real-world household debt scenarios (McAllister / JMU SCF analysis). For large income shares (50-80% dedicated to debt), time-to-payoff difference between methods becomes negligible."
+        },
+        "behavioral_risk": "Delayed wins — highest-APR debts are often also high-balance debts (e.g. credit cards). Users may see little visible progress for months, increasing abandonment risk.",
+        "best_for": "Users with financial discipline and math-oriented mindset; users with one very high-APR debt dominating the portfolio",
+        "nova_recommendation_trigger": "Recommend Avalanche when: user has a single debt with APR > 25%, or when largest balance debt and highest-APR debt are the same account"
+      },
+      "hybrid": {
+        "name": "Hybrid — Psychological Avalanche",
+        "description": "Pay off 1-2 smallest debts first to generate quick wins and motivation, then switch to Avalanche ordering for remaining debts.",
+        "nova_recommendation_trigger": "Recommend when: user has 2+ debts under $500 (easy quick wins available) AND one or more debts with APR > 20%"
+      }
+    },
+
+    "interest_calculation": {
+      "monthly_interest_formula": "monthly_interest = (balance * apr) / 12",
+      "amortization_note": "Each minimum payment covers monthly_interest first; remainder reduces principal. Extra payments reduce principal directly, compounding savings over remaining term.",
+      "minimum_payment_floor": 25,
+      "minimum_payment_percentage": 0.02,
+      "minimum_payment_rule": "minimum_payment = max(minimum_payment_floor, balance * minimum_payment_percentage)"
+    },
+
+    "payoff_projection": {
+      "description": "Month-by-month simulation. For each period: apply interest, subtract minimum payments on non-target debts, apply full extra payment to target debt. Advance to next debt when current target reaches $0.",
+      "outputs": [
+        "months_to_payoff_snowball",
+        "months_to_payoff_avalanche",
+        "total_interest_snowball",
+        "total_interest_avalanche",
+        "interest_saved_by_avalanche",
+        "monthly_timeline_array (for chart rendering)"
+      ]
+    }
+  },
+
+  "diagnostic_thresholds": {
+    "description": "Rule-based trigger conditions for NOVA diagnostic flags. All evaluated deterministically against user's financial data. No inference required.",
+
+    "debt_to_income_ratio": {
+      "metric": "DTI",
+      "formula": "dti = (total_monthly_debt_payments / gross_monthly_income) * 100",
+      "includes": ["credit card minimums", "auto loan", "student loan", "personal loan", "mortgage/rent"],
+      "excludes": ["utilities", "groceries", "insurance", "subscriptions"],
+      "tiers": [
+        {
+          "label": "Healthy",
+          "range": [0, 35],
+          "color": "green",
+          "severity": "OK",
+          "message": "Your debt load is manageable. Lenders consider this a strong financial position.",
+          "source": "BHG Financial / Citizens Bank / general lending standards"
+        },
+        {
+          "label": "Caution",
+          "range": [36, 43],
+          "color": "amber",
+          "severity": "WATCH",
+          "message": "Debt-to-income is elevated. Lenders may impose stricter terms. Focus on reducing balances.",
+          "source": "Fannie Mae Selling Guide B3-6-02; standard mortgage underwriting threshold"
+        },
+        {
+          "label": "Danger",
+          "range": [44, 50],
+          "color": "orange",
+          "severity": "WARNING",
+          "flag": "HIGH_DTI",
+          "message": "High debt load. Most lenders will restrict new credit. Debt reduction should be your primary financial objective.",
+          "source": "FHA back-end DTI ceiling; LendingTree / Money.com standards"
+        },
+        {
+          "label": "Critical",
+          "range": [51, 100],
+          "color": "red",
+          "severity": "CRITICAL",
+          "flag": "TOXIC_DTI",
+          "message": "Debt obligations consume over half your income. This is a financial emergency. Aggressive debt elimination required immediately.",
+          "source": "Federal Reserve consumer finance research; bankruptcy risk indicators"
+        }
+      ]
+    },
+
+    "housing_expense_ratio": {
+      "metric": "Housing Ratio (Front-End DTI)",
+      "formula": "housing_ratio = (monthly_housing_cost / gross_monthly_income) * 100",
+      "includes": ["rent OR mortgage", "property taxes", "homeowners/renters insurance", "HOA fees"],
+      "tiers": [
+        { "label": "Optimal",  "range": [0, 28],  "severity": "OK",       "message": "Housing costs are within the ideal range." },
+        { "label": "Moderate", "range": [29, 31],  "severity": "WATCH",   "message": "Housing is near the standard lender limit of 31%. Monitor for creep.", "source": "US Bank / FHA front-end DTI limit" },
+        { "label": "Strained", "range": [32, 40],  "severity": "WARNING", "flag": "HOUSING_DRAIN", "message": "Housing consumes an outsized share of income. Explore options: roommates, refinancing, or relocation." },
+        { "label": "Critical", "range": [41, 100], "severity": "CRITICAL", "flag": "HOUSING_CRISIS", "message": "Housing costs exceed 40% of gross income — a recognized financial stress threshold. Immediate review required." }
+      ]
+    },
+
+    "emergency_fund": {
+      "metric": "Emergency Fund Coverage",
+      "formula": "coverage_months = emergency_fund_balance / average_monthly_essential_expenses",
+      "source": "Standard financial planning consensus (Lusardi & Mitchell 2014; CFP Board guidelines)",
+      "tiers": [
+        { "label": "None",        "range": [0, 0],     "severity": "CRITICAL", "flag": "NO_EMERGENCY_FUND",  "message": "You have no emergency fund. One unexpected expense could force you into debt. Start immediately — even $500 matters." },
+        { "label": "Starter",     "range": [0.01, 0.99], "severity": "WARNING", "flag": "THIN_EMERGENCY_FUND", "message": "Emergency fund is under 1 month of expenses. Build to at least $1,000 as your first priority before extra debt payments." },
+        { "label": "Minimal",     "range": [1, 2.99],   "severity": "WATCH",   "message": "Emergency fund covers 1-3 months. Good start. Target 3-6 months for full resilience." },
+        { "label": "Standard",    "range": [3, 5.99],   "severity": "OK",      "message": "Emergency fund meets the 3-6 month target. Well positioned for most income disruptions." },
+        { "label": "Strong",      "range": [6, 12],     "severity": "OPTIMAL", "message": "Emergency fund exceeds 6 months. Excellent. Consider directing excess to investments." },
+        { "label": "Excess Cash", "range": [12.01, 999],"severity": "OPPORTUNITY", "flag": "EXCESS_CASH", "message": "Emergency fund exceeds 12 months. Excess cash is losing purchasing power to inflation. Review investment allocation." }
+      ],
+      "dave_ramsey_baby_step_1": {
+        "amount": 1000,
+        "description": "Starter emergency fund — $1,000 saved before aggressively paying debt. A minimum buffer to prevent new debt accumulation from minor surprises."
+      }
+    },
+
+    "credit_card_utilization": {
+      "metric": "Credit Utilization Ratio",
+      "formula": "utilization = (total_credit_card_balances / total_credit_limits) * 100",
+      "tiers": [
+        { "label": "Optimal",  "range": [0, 9],   "severity": "OK",       "message": "Excellent utilization. Maximizes credit score benefit." },
+        { "label": "Good",     "range": [10, 29],  "severity": "OK",       "message": "Healthy utilization. No action required." },
+        { "label": "Elevated", "range": [30, 49],  "severity": "WATCH",   "flag": "HIGH_UTILIZATION", "message": "Utilization above 30% begins to reduce credit scores. Pay down balances." },
+        { "label": "High",     "range": [50, 74],  "severity": "WARNING", "flag": "HIGH_UTILIZATION", "message": "High utilization signals credit risk to lenders and damages your score significantly." },
+        { "label": "Maxed",    "range": [75, 100], "severity": "CRITICAL", "flag": "MAXED_CREDIT", "message": "Near-maxed credit cards. Severely impacts creditworthiness. Debt reduction is urgent." }
+      ]
+    },
+
+    "apr_toxicity": {
+      "metric": "Debt APR Classification",
+      "description": "Classifies each individual debt by its APR into risk tiers. High-APR debt is the primary target for accelerated payoff.",
+      "tiers": [
+        { "label": "Low-Cost",  "range": [0, 5.99],   "severity": "OK",       "description": "Productive debt. Inflation often erodes real cost. Minimum payments acceptable.", "examples": ["subsidized student loans", "some mortgages"] },
+        { "label": "Moderate",  "range": [6, 12.99],  "severity": "WATCH",   "description": "Manageable cost debt. Still worth targeting if no higher-APR exists.", "examples": ["auto loans", "personal loans"] },
+        { "label": "Elevated",  "range": [13, 19.99], "severity": "WARNING", "flag": "ELEVATED_APR", "description": "Above-average borrowing cost. Prioritize reduction.", "examples": ["some credit cards", "store cards"] },
+        { "label": "High",      "range": [20, 29.99], "severity": "CRITICAL", "flag": "HIGH_APR",    "description": "Toxic cost of capital. Every month of carry significantly compounds the total owed. Aggressive payoff required.", "examples": ["credit cards", "medical financing"] },
+        { "label": "Predatory", "range": [30, 9999],  "severity": "CRITICAL", "flag": "PREDATORY_DEBT", "description": "Predatory lending rate. Payday loans, cash advances. Seek emergency assistance or balance transfer immediately.", "examples": ["payday loans", "cash advance loans", "some rent-to-own"] }
+      ],
+      "toxic_threshold": 20,
+      "predatory_threshold": 30
+    },
+
+    "savings_rate": {
+      "metric": "Monthly Savings Rate",
+      "formula": "savings_rate = (monthly_savings / net_monthly_income) * 100",
+      "includes_in_savings": ["emergency fund contributions", "retirement", "investments", "above-minimum debt payments"],
+      "tiers": [
+        { "label": "None",        "range": [0, 0],    "severity": "CRITICAL", "flag": "NO_SAVINGS",     "message": "Zero savings rate. Any unexpected expense will require debt. Prioritize even a small automated transfer." },
+        { "label": "Minimal",     "range": [0.01, 4.99], "severity": "WARNING","flag": "LOW_SAVINGS",   "message": "Savings rate is very low. Target 5-10% as a starting point to build resilience." },
+        { "label": "Starter",     "range": [5, 9.99],  "severity": "WATCH",   "message": "Savings rate is a positive start. Push toward 10-15% for meaningful long-term impact." },
+        { "label": "Moderate",    "range": [10, 19.99], "severity": "OK",      "message": "Solid savings rate. Continue building. Consider automation to protect this habit." },
+        { "label": "Strong",      "range": [20, 100],   "severity": "OPTIMAL", "message": "Strong savings rate aligned with the 50/30/20 recommendation. Excellent financial discipline." }
+      ],
+      "target_rate": 20,
+      "source": "Warren & Tyagi (2005); Dave Ramsey Baby Steps; Lusardi & Mitchell (2014)"
+    },
+
+    "subscription_drain": {
+      "metric": "Recurring Subscription Load",
+      "formula": "subscription_percentage = (total_monthly_subscriptions / net_monthly_income) * 100",
+      "description": "Subscription and micro-bill creep — streaming, apps, memberships — accumulates invisibly. Each service seems small individually but constitutes a material discretionary drain.",
+      "behavioral_source": "Thaler (1980) Mental Accounting — people fail to aggregate small recurring charges into a meaningful total, treating each as isolated and trivial.",
+      "tiers": [
+        { "label": "Minimal", "range": [0, 2.99],  "severity": "OK" },
+        { "label": "Notable", "range": [3, 4.99],  "severity": "WATCH",   "message": "Subscriptions are approaching 5% of income. Review for unused services." },
+        { "label": "Drain",   "range": [5, 9.99],  "severity": "WARNING", "flag": "SUBSCRIPTION_DRAIN", "message": "Recurring subscriptions consume over 5% of income. Audit and cancel unused services." },
+        { "label": "Severe",  "range": [10, 100],  "severity": "CRITICAL", "flag": "SUBSCRIPTION_CRISIS", "message": "Subscriptions exceed 10% of income — a significant wants-category drain. Immediate audit required." }
+      ]
+    }
+  },
+
+  "nova_diagnostic_flags": {
+    "description": "Named flags produced by the LocalAIEngine. Each flag maps to a specific threshold breach and drives a diagnostic message in either Encouraging or Tough Love tone.",
+    "flags": {
+      "SHORTFALL_DETECTED":    { "severity": "CRITICAL", "category": "runway",       "display": "Cash Shortfall" },
+      "TIGHT_RUNWAY":          { "severity": "WARNING",  "category": "runway",       "display": "Tight Daily Budget" },
+      "TOXIC_DTI":             { "severity": "CRITICAL", "category": "debt_burden",  "display": "Debt Load Critical" },
+      "HIGH_DTI":              { "severity": "WARNING",  "category": "debt_burden",  "display": "High Debt Burden" },
+      "HOUSING_DRAIN":         { "severity": "WARNING",  "category": "spending",     "display": "Housing Cost Strain" },
+      "HOUSING_CRISIS":        { "severity": "CRITICAL", "category": "spending",     "display": "Housing Cost Crisis" },
+      "NO_EMERGENCY_FUND":     { "severity": "CRITICAL", "category": "resilience",   "display": "No Safety Net" },
+      "THIN_EMERGENCY_FUND":   { "severity": "WARNING",  "category": "resilience",   "display": "Thin Safety Net" },
+      "EXCESS_CASH":           { "severity": "OPPORTUNITY","category": "efficiency", "display": "Idle Cash Opportunity" },
+      "HIGH_UTILIZATION":      { "severity": "WARNING",  "category": "credit",       "display": "High Credit Usage" },
+      "MAXED_CREDIT":          { "severity": "CRITICAL", "category": "credit",       "display": "Cards Near Limit" },
+      "HIGH_APR":              { "severity": "CRITICAL", "category": "debt_cost",    "display": "High-Cost Debt Detected" },
+      "PREDATORY_DEBT":        { "severity": "CRITICAL", "category": "debt_cost",    "display": "Predatory Rate Debt" },
+      "ELEVATED_APR":          { "severity": "WARNING",  "category": "debt_cost",    "display": "Above-Average Debt Rate" },
+      "NO_SAVINGS":            { "severity": "CRITICAL", "category": "savings",      "display": "No Savings Rate" },
+      "LOW_SAVINGS":           { "severity": "WARNING",  "category": "savings",      "display": "Low Savings Rate" },
+      "SUBSCRIPTION_DRAIN":    { "severity": "WARNING",  "category": "spending",     "display": "Subscription Creep" },
+      "SUBSCRIPTION_CRISIS":   { "severity": "CRITICAL", "category": "spending",     "display": "Subscription Overload" }
+    }
+  },
+
+  "nova_personalities": {
+    "encouraging": {
+      "tone": "Warm, supportive, coach-like. Frames problems as opportunities. Uses words like 'great start', 'you've got this', 'small step forward'.",
+      "flag_prefix": "Let's look at this together — ",
+      "critical_opener": "This is solvable. Here's what the data is telling us: ",
+      "cta_style": "Gentle suggestion with positive framing",
+      "example_high_dti": "Your debt-to-income ratio is higher than we'd like, but recognizing it is the first step. Even adding $50/month to your highest-rate debt starts the momentum. You've got this."
+    },
+    "tough_love": {
+      "tone": "Direct, no-fluff, data-first. Frames problems clearly without sugarcoating. Uses words like 'this needs to change', 'here's the reality', 'action required now'.",
+      "flag_prefix": "Alert: ",
+      "critical_opener": "Here is the reality of your current financial position: ",
+      "cta_style": "Direct instruction with urgency",
+      "example_high_dti": "Your debt-to-income ratio is in the danger zone. Over 43% of your income goes to servicing debt. This is not sustainable. Stop adding to debt balances and start the Avalanche method this month."
+    }
+  },
+
+  "behavioral_finance_principles": {
+    "description": "Core behavioral economics concepts underlying NOVA's diagnostic logic and UX framing.",
+    "principles": [
+      {
+        "name": "Present Bias",
+        "source": "Kahneman & Tversky (1979)",
+        "description": "Humans disproportionately prefer immediate rewards over future benefits, even when the future benefit is far larger. Leads to under-saving, debt accumulation, and procrastination on financial planning.",
+        "nova_application": "NOVA surfaces the future-cost of inaction (e.g. total interest paid) to counteract present bias. Daily allowance makes the future real and visceral."
+      },
+      {
+        "name": "Mental Accounting",
+        "source": "Richard Thaler (1980)",
+        "description": "People compartmentalize money into psychological 'accounts' by source or purpose, and treat equivalent dollars differently based on their mental category.",
+        "nova_application": "Subscription drain flag leverages this — users mentally treat each $9.99 subscription as a trivial isolated cost, not as part of a $120+/month aggregate drain."
+      },
+      {
+        "name": "Loss Aversion",
+        "source": "Kahneman & Tversky (1979) — Prospect Theory",
+        "description": "Losses feel approximately 2x more painful than equivalent gains feel pleasurable. People will work harder to avoid losing $100 than to gain $100.",
+        "nova_application": "Tough Love personality frames debt cost and shortfall flags as losses already occurring. Encouraging personality frames payoff progress as gains accumulating."
+      },
+      {
+        "name": "Debt Account Aversion",
+        "source": "Amar et al. (behavioral research)",
+        "description": "Debtors are motivated to reduce the count of open debt accounts, independent of balance or interest. The desire to see zero outstanding accounts drives behavior more than mathematical optimization.",
+        "nova_application": "Justifies offering Snowball as a primary recommendation for multi-debt users. Quantifies the psychological benefit of account elimination, not just interest savings."
+      },
+      {
+        "name": "Inertia / Status Quo Bias",
+        "source": "Thaler & Sunstein (2008) — Nudge Theory",
+        "description": "People default to existing behaviors and resist change, even when change is objectively beneficial. Automatically enrolled retirement savers save more than opt-in participants.",
+        "nova_application": "NOVA's Safe-to-Spend daily figure replaces the paralysis of an open-ended 'what can I spend today?' question with a deterministic, pre-computed answer — lowering the cognitive friction of decision-making."
+      },
+      {
+        "name": "Overconfidence / Month-Start Illusion",
+        "source": "Kahneman; MoneyFit.org weekly budgeting research",
+        "description": "A high checking account balance at the start of a monthly pay cycle creates false confidence. Users over-spend in week one because the visible number appears large, not realizing it must cover 30 days of bills.",
+        "nova_application": "The Runway Optimizer's core value proposition. By reserving upcoming bills and computing a per-day allowance, NOVA deflates the month-start illusion with arithmetic."
+      },
+      {
+        "name": "Nudge / Choice Architecture",
+        "source": "Thaler & Sunstein (2008)",
+        "description": "Small framing changes and defaults have outsized impact on financial outcomes without restricting freedom of choice. Making the desired behavior the path of least resistance improves results.",
+        "nova_application": "NOVA's diagnostic flags are ordered by severity, not category — ensuring the most urgent issue is always seen first. Default personality is Encouraging to reduce defensive resistance."
+      }
+    ]
+  },
+
+  "category_spend_benchmarks": {
+    "description": "Reference spending benchmarks by category as a percentage of net monthly income. Used by NOVA to flag category-level drain.",
+    "source": "US Bureau of Labor Statistics Consumer Expenditure Survey; 50/30/20 framework allocations",
+    "benchmarks": {
+      "housing":         { "target_pct": 28, "warning_pct": 32, "critical_pct": 40, "type": "need" },
+      "food_groceries":  { "target_pct": 10, "warning_pct": 15, "critical_pct": 20, "type": "need" },
+      "transportation":  { "target_pct": 10, "warning_pct": 15, "critical_pct": 20, "type": "need" },
+      "utilities":       { "target_pct": 5,  "warning_pct": 8,  "critical_pct": 12, "type": "need" },
+      "insurance":       { "target_pct": 5,  "warning_pct": 8,  "critical_pct": 12, "type": "need" },
+      "dining_out":      { "target_pct": 5,  "warning_pct": 8,  "critical_pct": 15, "type": "want" },
+      "entertainment":   { "target_pct": 5,  "warning_pct": 8,  "critical_pct": 12, "type": "want" },
+      "subscriptions":   { "target_pct": 2,  "warning_pct": 5,  "critical_pct": 10, "type": "want" },
+      "clothing":        { "target_pct": 3,  "warning_pct": 5,  "critical_pct": 10, "type": "want" },
+      "debt_payments":   { "target_pct": 15, "warning_pct": 36, "critical_pct": 43, "type": "obligation" },
+      "savings":         { "target_pct": 20, "warning_pct": 10, "critical_pct": 5,  "type": "future", "invert": true }
+    },
+    "note": "Savings tier is inverted: warning fires when savings is BELOW the threshold, not above."
+  },
+
+  "safe_to_invest_rule": {
+    "description": "Hierarchy for deploying extra cash above bare minimum obligations. Based on Ramsey Baby Steps and standard CFP guidance.",
+    "priority_order": [
+      { "step": 1, "action": "Build $1,000 starter emergency fund",            "condition": "emergency_fund < 1000" },
+      { "step": 2, "action": "Pay off all non-mortgage debt (Snowball method)", "condition": "has_non_mortgage_debt == true" },
+      { "step": 3, "action": "Build 3-6 month emergency fund",                 "condition": "emergency_coverage_months < 3" },
+      { "step": 4, "action": "Invest 15% of income for retirement",            "condition": "retirement_savings_rate < 0.15" },
+      { "step": 5, "action": "Save for children's education (if applicable)",  "condition": "has_children == true && college_savings == 0" },
+      { "step": 6, "action": "Pay off mortgage early",                         "condition": "has_mortgage == true" },
+      { "step": 7, "action": "Build wealth and invest",                        "condition": "all_above_complete == true" }
+    ]
+  },
+
+  "rule_of_72": {
+    "description": "Mathematical heuristic to estimate how long it takes a debt or investment to double.",
+    "formula": "years_to_double = 72 / annual_rate_percentage",
+    "debt_application": "At 24% APR, your credit card balance doubles in 3 years if only minimums are paid. Use to illustrate the cost of inaction on high-APR debt.",
+    "investment_application": "At 8% average market return, investments double approximately every 9 years."
+  },
+
+  "engine_implementation_notes": {
+    "file": "LocalAIEngine.php",
+    "approach": "Pure PHP rule evaluation. No ML model, no API calls. All logic is deterministic if-then-else evaluation against user's financial data snapshot.",
+    "input_data_contract": {
+      "liquid_balance": "float — total unrestricted cash (checking + savings)",
+      "next_payday_date": "date string Y-m-d",
+      "upcoming_bills": "array of { name, amount, due_date }",
+      "debts": "array of { name, balance, apr, minimum_payment, type }",
+      "gross_monthly_income": "float",
+      "net_monthly_income": "float",
+      "emergency_fund_balance": "float",
+      "monthly_savings_amount": "float",
+      "monthly_spending_by_category": "object { category: amount }",
+      "credit_cards": "array of { name, balance, limit }",
+      "personality": "string — 'encouraging' | 'tough_love'"
+    },
+    "output_contract": {
+      "daily_allowance": "float",
+      "days_until_payday": "int",
+      "reserved_for_bills": "float",
+      "flags": "array of flag strings",
+      "diagnostics": "array of { flag, severity, message, action }",
+      "debt_recommendation": "string — 'snowball' | 'avalanche' | 'hybrid'",
+      "budget_mode": "string — 'standard_50_30_20' | 'deep_debt_75_5_20'",
+      "current_step_priority": "int 1-7 (safe_to_invest_rule)"
+    },
+    "evaluation_order": [
+      "1. Compute daily_allowance and detect SHORTFALL_DETECTED / TIGHT_RUNWAY",
+      "2. Compute DTI and classify tier",
+      "3. Compute housing ratio and classify tier",
+      "4. Evaluate emergency fund coverage months",
+      "5. Compute credit utilization per card and in aggregate",
+      "6. Classify each debt by APR tier",
+      "7. Compute savings rate",
+      "8. Compute subscription aggregate and classify",
+      "9. Evaluate category spend benchmarks",
+      "10. Recommend debt strategy (snowball/avalanche/hybrid)",
+      "11. Determine budget mode",
+      "12. Determine current priority step",
+      "13. Format all flag messages using selected personality"
+    ]
+  }
+}

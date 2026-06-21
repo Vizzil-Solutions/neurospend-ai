@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEUROSPEND | Nova Intelligence Core</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400..900;1,400..900&amp;family=Geist:wght@100..900&amp;family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(17, 19, 24, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(82, 255, 172, 0.3), transparent);
+        }
+        .nova-glow {
+            box-shadow: 0 0 40px -10px rgba(0, 226, 144, 0.4);
+        }
+        .neon-border-breathing {
+            animation: breathe 4s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%, 100% { border-color: rgba(0, 226, 144, 0.2); box-shadow: 0 0 5px rgba(0, 226, 144, 0.1); }
+            50% { border-color: rgba(0, 226, 144, 0.8); box-shadow: 0 0 20px rgba(0, 226, 144, 0.3); }
+        }
+        .grain {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#f6d9ff",
+                        "outline-variant": "#3a4a3f",
+                        "surface-dim": "#111318",
+                        "primary-fixed-dim": "#00e290",
+                        "tertiary": "#fffbff",
+                        "surface-container-high": "#282a2e",
+                        "on-secondary-fixed": "#001f25",
+                        "inverse-on-surface": "#2f3035",
+                        "surface-bright": "#37393e",
+                        "primary-fixed": "#52ffac",
+                        "on-primary-container": "#007146",
+                        "error-container": "#93000a",
+                        "on-tertiary-container": "#952cc8",
+                        "secondary-container": "#00e0ff",
+                        "on-background": "#e2e2e8",
+                        "on-surface-variant": "#b9cbbd",
+                        "on-surface": "#e2e2e8",
+                        "outline": "#849588",
+                        "on-primary": "#003920",
+                        "on-secondary-fixed-variant": "#004e5a",
+                        "secondary": "#b9f1ff",
+                        "on-primary-fixed": "#002111",
+                        "background": "#111318",
+                        "on-error-container": "#ffdad6",
+                        "inverse-primary": "#006d43",
+                        "surface-container-low": "#1a1c20",
+                        "primary-container": "#00ffa3",
+                        "surface-container-lowest": "#0c0e12",
+                        "secondary-fixed-dim": "#00daf8",
+                        "on-tertiary-fixed-variant": "#7200a3",
+                        "surface": "#111318",
+                        "primary": "#f5fff5",
+                        "secondary-fixed": "#a5eeff",
+                        "tertiary-container": "#f5d5ff",
+                        "on-error": "#690005",
+                        "surface-container": "#1e2024",
+                        "surface-tint": "#00e290",
+                        "inverse-surface": "#e2e2e8",
+                        "tertiary-fixed-dim": "#e9b3ff",
+                        "surface-variant": "#333539",
+                        "on-tertiary": "#510074",
+                        "on-primary-fixed-variant": "#005231",
+                        "surface-container-highest": "#333539",
+                        "on-secondary": "#00363f",
+                        "on-secondary-container": "#005f6d",
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed": "#310048"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "section-gap": "48px",
+                        "stack-md": "16px",
+                        "stack-sm": "8px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Bodoni Moda"],
+                        "headline-lg": ["Bodoni Moda"],
+                        "label-caps": ["JetBrains Mono"],
+                        "data-mono": ["JetBrains Mono"],
+                        "body-md": ["Geist"],
+                        "title-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "label-caps": ["11px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "data-mono": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "title-md": ["20px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen flex">
+<!-- SideNavBar (Shared Component) -->
+<aside class="flex flex-col h-full py-gutter fixed left-0 top-0 z-40 bg-surface-container-lowest docked left-0 h-screen w-64 border-r border-outline-variant/20">
+<div class="px-6 mb-12">
+<h1 class="font-display-lg text-display-lg text-primary-fixed">NS</h1>
+<div class="mt-4">
+<p class="font-label-caps text-label-caps tracking-widest text-primary-fixed-dim">COMMAND CENTER</p>
+<p class="text-[10px] font-data-mono text-on-surface-variant opacity-60">DIAGNOSTIC ACTIVE</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Nav Item: Survival -->
+<a class="group flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined mr-4">analytics</span>
+<span class="font-label-caps text-label-caps">Survival</span>
+</a>
+<!-- Nav Item: Debt -->
+<a class="group flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined mr-4">account_balance</span>
+<span class="font-label-caps text-label-caps">Debt</span>
+</a>
+<!-- Nav Item: Nova AI (Active) -->
+<a class="group flex items-center px-6 py-3 bg-primary-fixed/10 text-primary-fixed border-l-4 border-primary-fixed translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-label-caps text-label-caps">Nova AI</span>
+</a>
+<!-- Nav Item: Settings -->
+<a class="group flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined mr-4">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<div class="px-6 pb-8 space-y-4">
+<button class="w-full py-3 bg-primary-fixed text-on-primary-fixed font-label-caps text-label-caps hover:brightness-110 transition-all active:scale-95">
+                UPGRADE ENGINE
+            </button>
+<div class="pt-6 border-t border-outline-variant/10 space-y-3">
+<div class="flex items-center text-on-surface-variant text-[10px] font-data-mono hover:text-on-surface transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-sm mr-2">lock</span> PRIVACY LOCK
+                </div>
+<div class="flex items-center text-on-surface-variant text-[10px] font-data-mono hover:text-on-surface transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-sm mr-2">memory</span> SYSTEM HEALTH
+                </div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col relative min-h-screen">
+<!-- TopAppBar (Shared Component) -->
+<header class="flex justify-between items-center px-container-padding h-20 w-full fixed top-0 z-50 bg-surface-dim/80 backdrop-blur-xl docked full-width top-0 border-b border-outline-variant/30 backdrop-blur-20px border-b border-white/10">
+<div class="flex items-center gap-8">
+<div class="font-label-caps text-label-caps tracking-widest text-primary-fixed">NEUROSPEND</div>
+<div class="hidden md:flex items-center h-10 px-4 bg-white/5 rounded-full border border-white/10">
+<span class="material-symbols-outlined text-on-surface-variant text-sm mr-2">search</span>
+<input class="bg-transparent border-none text-[12px] font-data-mono focus:ring-0 text-on-surface w-48 uppercase" placeholder="QUERY LOCAL DATA..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-end">
+<span class="font-data-mono text-data-mono text-primary-fixed-dim tracking-tighter">$142.50 SAFE</span>
+<span class="font-label-caps text-[9px] text-on-surface-variant/60">SYNCED &amp; ENCRYPTED</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-primary-fixed/20 overflow-hidden">
+<img class="w-full h-full object-cover grayscale" data-alt="A high-contrast cinematic portrait of a professional financial executive in a sleek dark suit, illuminated by neon green studio lighting against a dark minimalist background, reflecting a sophisticated cyber-luxury aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtPFombheckgzKedviK1uJOJF9rDrIDx89RNx_01RQzBnONFTZ3NCWS2Kls0DlUWBBSXIEcCKRdvuM-IGHe16XhS1f7UHZts9M2HRGkRCgH0imPVAO5zDBItSCvLGgVeThwpXpimHFjwLhvHoYsPeO45Ag9T1XyrgGjUaLhWZnEPBkE_92dlU3EVEvSZ8dBuq2i0ZMyjg3ifyy7aXHtimFw-vIny4ifVoqnw3MZTG50txIKSKkxmUKA_dtyAtEP8vQF1Tem7l8XCg"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="pt-32 px-12 pb-32 flex-1 max-w-7xl mx-auto w-full">
+<!-- Hero Section: Nova Core -->
+<section class="relative mb-section-gap">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-center">
+<div class="lg:col-span-7 flex flex-col items-center justify-center p-12 glass-panel rounded-xl aspect-square lg:aspect-auto h-[400px]">
+<div class="grain rounded-xl absolute inset-0"></div>
+<div class="relative w-64 h-64 flex items-center justify-center">
+<!-- Orb Animation Placeholder -->
+
+<div class="absolute inset-0 rounded-full border-2 border-primary-fixed/20 neon-border-breathing"></div>
+<div class="absolute -inset-8 rounded-full border border-primary-fixed/5 scale-110"></div>
+</div>
+<div class="mt-8 text-center space-y-2">
+<h2 class="font-display-lg text-display-lg text-primary-fixed tracking-tight">NOVA CORE</h2>
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-fixed/10 rounded-full border border-primary-fixed/30">
+<span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
+<span class="font-label-caps text-[10px] text-primary-fixed">LOCAL ENGINE: OPTIMAL</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 space-y-4">
+<!-- Diagnostic Cards -->
+<div class="glass-panel p-6 rounded-xl border-l-4 border-error neon-border-breathing">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="font-label-caps text-[10px] bg-error/10 text-error px-2 py-0.5">CRITICAL</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-1">Toxic Debt Flag</h3>
+<p class="font-body-md text-on-surface-variant text-sm mb-4">Credit Card A is carrying a 24.9% APR. Nova suggests immediate liquidation using Surplus Alpha.</p>
+<div class="flex items-center justify-between text-xs font-data-mono">
+<span class="text-error">-$4,208.12</span>
+<button class="text-primary-fixed-dim hover:underline transition-all">EXECUTE PAYOFF</button>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-xl border-l-4 border-secondary">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-secondary">analytics</span>
+<span class="font-label-caps text-[10px] bg-secondary/10 text-secondary px-2 py-0.5">INSIGHT</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-1">Category Drain Alert</h3>
+<p class="font-body-md text-on-surface-variant text-sm mb-4">Subscription bloat detected in "Entertainment". 4 services unused in 30 days.</p>
+<div class="flex items-center justify-between text-xs font-data-mono">
+<span class="text-secondary">+$64.99 POTENTIAL</span>
+<button class="text-primary-fixed-dim hover:underline transition-all">REVIEW LIST</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Dashboard Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+<!-- Personality Selector -->
+<div class="glass-panel p-6 rounded-xl flex flex-col">
+<h4 class="font-label-caps text-[12px] text-on-surface-variant mb-6 flex items-center">
+<span class="material-symbols-outlined text-sm mr-2">psychology_alt</span> ENGINE PERSONALITY
+                    </h4>
+<div class="flex-1 flex flex-col gap-3">
+<button class="flex-1 flex items-center justify-between px-4 py-3 rounded-lg border border-outline-variant/30 hover:border-primary-fixed/50 transition-all group">
+<span class="font-title-md text-sm">ENCOURAGING</span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 transition-opacity">radio_button_unchecked</span>
+</button>
+<button class="flex-1 flex items-center justify-between px-4 py-3 rounded-lg border border-primary-fixed/60 bg-primary-fixed/5 transition-all">
+<span class="font-title-md text-sm text-primary-fixed">TOUGH LOVE</span>
+<span class="material-symbols-outlined text-sm text-primary-fixed" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+</div>
+</div>
+<!-- Privacy Log -->
+<div class="glass-panel p-6 rounded-xl lg:col-span-2">
+<h4 class="font-label-caps text-[12px] text-on-surface-variant mb-6 flex items-center">
+<span class="material-symbols-outlined text-sm mr-2">verified_user</span> LOCAL PRIVACY LOG
+                    </h4>
+<div class="space-y-3">
+<div class="flex items-center justify-between py-2 border-b border-outline-variant/10">
+<span class="font-data-mono text-[12px] text-on-surface">DATA_IN: Chase_Export_02.csv</span>
+<span class="font-label-caps text-[9px] text-primary-fixed">STRIPPED &amp; LOCALIZED</span>
+</div>
+<div class="flex items-center justify-between py-2 border-b border-outline-variant/10">
+<span class="font-data-mono text-[12px] text-on-surface">COMPUTE: Neural_Scrub_v4.2</span>
+<span class="font-label-caps text-[9px] text-primary-fixed">NO CLOUD LEAK</span>
+</div>
+<div class="flex items-center justify-between py-2">
+<span class="font-data-mono text-[12px] text-on-surface">RESULT: Insight_Gen_Complete</span>
+<span class="font-label-caps text-[9px] text-primary-fixed">OFFLINE SECURE</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Chat Input Fixed Bottom -->
+<div class="fixed bottom-0 left-64 right-0 p-container-padding bg-gradient-to-t from-background via-background/90 to-transparent z-50">
+<div class="max-w-4xl mx-auto">
+<div class="glass-panel nova-glow p-2 rounded-full border border-primary-fixed/30 flex items-center gap-4 group focus-within:border-primary-fixed transition-all">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-primary-fixed/10">
+<span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<input class="flex-1 bg-transparent border-none font-data-mono text-sm focus:ring-0 text-on-surface placeholder:text-on-surface-variant/40" placeholder="ASK NOVA ABOUT YOUR SURVIVAL RATE..." type="text"/>
+<button class="w-10 h-10 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined">north</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Script -->
+<script>
+        // Simple ambient pulse for the glass panels
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mousemove', (e) => {
+                const rect = panel.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                panel.style.setProperty('--mouse-x', `${x}px`);
+                panel.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>
