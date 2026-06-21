@@ -1,5 +1,6 @@
 # NeuroSpend AI
 
+![Version 1.0.0](https://img.shields.io/badge/version-1.0.0-0C447C?style=flat-square)
 ![Laravel 11](https://img.shields.io/badge/Laravel-11-FAECE7?style=flat-square&logo=laravel&logoColor=993C1D)
 ![PHP 8.3+](https://img.shields.io/badge/PHP-8.3+-E6F1FB?style=flat-square&logo=php&logoColor=0C447C)
 ![SQLite](https://img.shields.io/badge/SQLite-EAF3DE?style=flat-square&logo=sqlite&logoColor=3B6D11)
@@ -53,6 +54,9 @@ Local rule-based diagnostics engine. Flags toxic debt, category drain, and unsaf
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/Vizzil-Solutions/neurospend-ai/tags).
+
+**Current Version:** `v1.0.0`
+- Initial stable release featuring the complete suite of Survival Command, Debt Command, and NOVA Intelligence.
 
 This project adheres to the [Conventional Commits](https://www.conventionalcommits.org/) specification. We use [Standard Version](https://github.com/conventional-changelog/standard-version) for automated changelog generation and version bumping.
 
