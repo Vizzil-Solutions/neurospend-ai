@@ -111,8 +111,8 @@ if ($action === 'run') {
         logMsg("ERROR: Cannot generate key because .env does not exist.");
     }
     
-    // 3. Ensure SQLite database exists (pure PHP)
-    logMsg("\n--- [STEP 3/4] Database File Validation ---");
+    // 3. Database Validation / Connection Test
+    logMsg("\n--- [STEP 3/4] Database Configuration & Connection ---");
     $envContent = file_exists($envPath) ? file_get_contents($envPath) : '';
     $dbConnection = 'sqlite';
     $dbDatabase = '';
@@ -148,7 +148,37 @@ if ($action === 'run') {
             logMsg("INFO: SQLite database file exists.");
         }
     } else {
-        logMsg("INFO: Custom database connection ($dbConnection) configured. Skipping file creation.");
+        logMsg("INFO: Custom connection '$dbConnection' configured. Testing database connection...");
+        
+        // Extract database credentials from .env
+        $dbHost = '127.0.0.1';
+        $dbPort = $dbConnection === 'pgsql' ? '5432' : '3306';
+        $dbUser = '';
+        $dbPass = '';
+        
+        if (preg_match('/^DB_HOST=(.*)$/m', $envContent, $matches)) { $dbHost = trim($matches[1]); }
+        if (preg_match('/^DB_PORT=(.*)$/m', $envContent, $matches)) { $dbPort = trim($matches[1]); }
+        if (preg_match('/^DB_USERNAME=(.*)$/m', $envContent, $matches)) { $dbUser = trim($matches[1]); }
+        if (preg_match('/^DB_PASSWORD=(.*)$/m', $envContent, $matches)) { $dbPass = trim($matches[1]); }
+        
+        try {
+            if ($dbConnection === 'pgsql') {
+                $dsn = "pgsql:host=$dbHost;port=$dbPort;dbname=$dbDatabase";
+            } else if ($dbConnection === 'mysql' || $dbConnection === 'mariadb') {
+                $dsn = "mysql:host=$dbHost;port=$dbPort;dbname=$dbDatabase";
+            } else {
+                $dsn = "$dbConnection:host=$dbHost;dbname=$dbDatabase";
+            }
+            
+            $pdo = new PDO($dsn, $dbUser, $dbPass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_TIMEOUT => 5
+            ]);
+            logMsg("SUCCESS: Connected to database '$dbDatabase' on '$dbHost'.");
+        } catch (\Throwable $e) {
+            logMsg("ERROR: Failed to connect to the database. Error: " . $e->getMessage());
+            logMsg("Please verify that your database credentials in '.env' are correct and that the database exists.");
+        }
     }
     
     // 4. Programmatic Laravel Migrations (in-process)
@@ -215,11 +245,12 @@ $stateEnvExists = file_exists($baseDir . '/.env');
 $stateAutoloadExists = file_exists($baseDir . '/vendor/autoload.php');
 $stateBuildExists = file_exists($baseDir . '/public/build/manifest.json') || glob($baseDir . '/public/build/assets/*.css');
 
-// Determine SQLite status
-$stateSqliteExists = false;
+// Determine database status and extension readiness
+$stateDbReady = false;
+$dbStatusLabel = 'Not Setup';
+$dbConnection = 'sqlite';
 if ($stateEnvExists) {
     $envContent = file_get_contents($baseDir . '/.env');
-    $dbConnection = 'sqlite';
     $dbDatabase = '';
     if (preg_match('/^DB_CONNECTION=(.*)$/m', $envContent, $matches)) {
         $dbConnection = trim($matches[1]);
@@ -237,9 +268,18 @@ if ($stateEnvExists) {
                 $sqliteFile = $baseDir . '/' . $sqliteFile;
             }
         }
-        $stateSqliteExists = file_exists($sqliteFile);
+        $stateDbReady = file_exists($sqliteFile);
+        $dbStatusLabel = $stateDbReady ? 'Ready' : 'Not Setup';
     } else {
-        $stateSqliteExists = true; // Not using sqlite
+        // For non-sqlite connections, verify that the required PDO extension is loaded
+        $extensionName = 'pdo_' . $dbConnection;
+        if ($dbConnection === 'pgsql') {
+            $extensionName = 'pdo_pgsql';
+        } else if ($dbConnection === 'mysql' || $dbConnection === 'mariadb') {
+            $extensionName = 'pdo_mysql';
+        }
+        $stateDbReady = extension_loaded($extensionName);
+        $dbStatusLabel = $stateDbReady ? 'Ready' : "Missing $extensionName";
     }
 }
 ?>
@@ -881,7 +921,7 @@ if ($stateEnvExists) {
                 </div>
                 <div class="step-node" id="stepNode3">
                     <div class="step-circle">3</div>
-                    <div class="step-label">DB File</div>
+                    <div class="step-label">DB Conn</div>
                 </div>
                 <div class="step-node" id="stepNode4">
                     <div class="step-circle">4</div>
@@ -918,12 +958,12 @@ if ($stateEnvExists) {
                     <span class="badge"><?php echo $stateBuildExists ? 'Detected' : 'Action Required'; ?></span>
                 </div>
                 
-                <div class="checklist-item <?php echo $stateSqliteExists ? 'ready' : 'missing'; ?>">
+                <div class="checklist-item <?php echo $stateDbReady ? 'ready' : 'missing'; ?>">
                     <div class="item-status">
-                        <span class="status-icon"><?php echo $stateSqliteExists ? '✓' : '✗'; ?></span>
-                        <span class="item-name">Database File & Connection</span>
+                        <span class="status-icon"><?php echo $stateDbReady ? '✓' : '✗'; ?></span>
+                        <span class="item-name">Database & PDO Driver (<?php echo htmlspecialchars($dbConnection); ?>)</span>
                     </div>
-                    <span class="badge"><?php echo $stateSqliteExists ? 'Ready' : 'Not Setup'; ?></span>
+                    <span class="badge"><?php echo htmlspecialchars($dbStatusLabel); ?></span>
                 </div>
             </div>
             
