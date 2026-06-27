@@ -1,0 +1,17 @@
+---
+deployment:
+  tasks:
+    # 1. Define the destination path on your cPanel server (e.g., your public_html or Laravel root)
+    # REPLACE "YOUR_CPANEL_USERNAME" with your actual cPanel username
+    - export DEPLOYPATH=/home/YOUR_CPANEL_USERNAME/public_html
+
+    # 2. Sync files from repository to the deployment folder.
+    # Note: As per official cPanel docs, do not use wildcards (like *) to copy files,
+    # as it can expose the .git directory. Instead, we use rsync on the current directory './' 
+    # and explicitly exclude sensitive/generated files.
+    # The --exclude options ensure that rsync will NOT overwrite or delete:
+    # - The '.env' configuration file
+    # - The 'vendor' directory (PHP dependencies)
+    # - The 'public/build' directory (compiled CSS/JS assets)
+    # - Local node_modules, .git, and this configuration file itself.
+    - /bin/rsync -aP --exclude='.git' --exclude='.cpanel.yml' --exclude='node_modules' --exclude='.env' --exclude='vendor' --exclude='public/build' ./ $DEPLOYPATH/
