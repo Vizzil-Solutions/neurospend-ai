@@ -1,8 +1,8 @@
 # NeuroSpend AI
 
 ![Version 1.0.0](https://img.shields.io/badge/version-1.0.0-0C447C?style=flat-square)
-![Laravel 11](https://img.shields.io/badge/Laravel-11-FAECE7?style=flat-square&logo=laravel&logoColor=993C1D)
-![PHP 8.3+](https://img.shields.io/badge/PHP-8.3+-E6F1FB?style=flat-square&logo=php&logoColor=0C447C)
+![Laravel 12](https://img.shields.io/badge/Laravel-12-FAECE7?style=flat-square&logo=laravel&logoColor=993C1D)
+![PHP 8.2+](https://img.shields.io/badge/PHP-8.2+-E6F1FB?style=flat-square&logo=php&logoColor=0C447C)
 ![SQLite](https://img.shields.io/badge/SQLite-EAF3DE?style=flat-square&logo=sqlite&logoColor=3B6D11)
 ![Privacy-First](https://img.shields.io/badge/Privacy--First-EEEDFE?style=flat-square)
 ![MIT License](https://img.shields.io/badge/License-MIT-FAEEDA?style=flat-square)
@@ -74,4 +74,4 @@ $ php artisan serve
 
 ---
 
-Built on behavioral economics research. Requires PHP 8.3+, Composer, and Node. SQLite database is created automatically on first migration. No external AI API keys required — NOVA runs entirely offline.
+Built on behavioral economics research. Requires PHP 8.2+, Composer, and Node. SQLite database is created automatically on first migration. No external AI API keys required — NOVA runs entirely offline.
